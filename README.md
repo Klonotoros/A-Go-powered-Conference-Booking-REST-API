@@ -12,7 +12,6 @@ To get started, make sure you have Go installed on your machine. Clone the repos
 go get -u github.com/gin-gonic/gin
 go get -u github.com/dgrijalva/jwt-go
 go get -u github.com/go-sql-driver/mysql
-# Add any other dependencies here
 ```
 
 ## Endpoints
