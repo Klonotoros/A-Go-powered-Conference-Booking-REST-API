@@ -26,6 +26,9 @@ go get -u github.com/go-sql-driver/mysql
 - 📌 **POST /conferences/<id>/register**: Register user for a specific event (Authentication required).
 - 🗑️ **DELETE /conferences/<id>/register**: Cancel registration for a specific event (Authentication required).
 
+## Database schema
+
+![image](https://github.com/Klonotoros/A-Go-powered-Conference-Booking-REST-API/assets/7630626/46f2cb62-b773-4971-82c7-4f64fca3ad58)
 
 ## Technologies Used
 
