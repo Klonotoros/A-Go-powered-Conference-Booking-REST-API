@@ -18,27 +18,33 @@ func getConferences(context *gin.Context) {
 
 func getConference(context *gin.Context) {
 	conferenceId, err := strconv.ParseInt(context.Param("id"), 10, 64)
+
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse conference id."})
 		return
 	}
+
 	conference, err := models.GetConferenceByID(conferenceId)
+
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch conference."})
 		return
 	}
+
 	context.JSON(http.StatusOK, conference)
 }
 
 func createConference(context *gin.Context) {
+
 	var conference models.Conference
 	err := context.ShouldBindJSON(&conference)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data."})
 		return
 	}
+	userId := context.GetInt64("userId")
+	conference.UserID = userId
 
-	conference.UserID = 1
 	err = conference.Save()
 
 	if err != nil {
@@ -56,9 +62,16 @@ func updateConference(context *gin.Context) {
 		return
 	}
 
-	_, err = models.GetConferenceByID(conferenceId)
+	userId := context.GetInt64("userId")
+	conference, err := models.GetConferenceByID(conferenceId)
+
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch conference."})
+		return
+	}
+
+	if conference.UserID != userId {
+		context.JSON(http.StatusUnauthorized, gin.H{"message": "Not authorized to update conference."})
 		return
 	}
 
@@ -86,11 +99,16 @@ func deleteConference(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse conference id."})
 		return
 	}
-
+	userId := context.GetInt64("userId")
 	conference, err := models.GetConferenceByID(conferenceId)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch the conference."})
+		return
+	}
+
+	if conference.UserID != userId {
+		context.JSON(http.StatusUnauthorized, gin.H{"message": "Not authorized to delete conference."})
 		return
 	}
 	err = conference.Delete()

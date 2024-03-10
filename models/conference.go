@@ -15,10 +15,10 @@ type Conference struct {
 	Description string    `binding:"required"`
 	Location    string    `binding:"required"`
 	DateTime    time.Time `binding:"required"`
-	UserID      int
+	UserID      int64
 }
 
-func (c Conference) Save() error {
+func (c *Conference) Save() error {
 	query := `INSERT INTO conferences(name, description, location, dateTime, user_id) VALUES(?, ?, ?, ?, ?)`
 
 	stmt, err := db.DB.Prepare(query)
@@ -82,7 +82,7 @@ func GetAllConferences() ([]Conference, error) {
 func GetConferenceByID(id int64) (*Conference, error) {
 	query := "SELECT * FROM conferences WHERE id = ?"
 	row := db.DB.QueryRow(query, id)
-	
+
 	var conference Conference
 	err := row.Scan(&conference.ID, &conference.Name, &conference.Description, &conference.Location, &conference.DateTime, &conference.UserID)
 	if err != nil {
@@ -95,7 +95,7 @@ func GetConferenceByID(id int64) (*Conference, error) {
 	return &conference, nil
 }
 
-func (c Conference) Update() error {
+func (c *Conference) Update() error {
 	query := `
 	UPDATE conferences
 	SET name = ?, description = ?, location = ?, dateTime = ? 
@@ -119,7 +119,7 @@ func (c Conference) Update() error {
 	return err
 }
 
-func (c Conference) Delete() error {
+func (c *Conference) Delete() error {
 	query := `DELETE FROM conferences WHERE id = ?`
 
 	stmt, err := db.DB.Prepare(query)
@@ -136,5 +136,45 @@ func (c Conference) Delete() error {
 	}(stmt)
 
 	_, err = stmt.Exec(c.ID)
+	return err
+}
+
+func (c *Conference) Register(userId int64) error {
+	query := "INSERT INTO registrations(conference_id, user_id) VALUES (?, ?)"
+	stmt, err := db.DB.Prepare(query)
+
+	if err != nil {
+		return err
+	}
+
+	defer func(stmt *sql.Stmt) {
+		err := stmt.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(stmt)
+
+	_, err = stmt.Exec(c.ID, userId)
+
+	return err
+}
+
+func (c *Conference) CancelRegistration(userId int64) error {
+	query := "DELETE FROM registrations WHERE event_id = ? AND user_id = ?"
+	stmt, err := db.DB.Prepare(query)
+
+	if err != nil {
+		return err
+	}
+
+	defer func(stmt *sql.Stmt) {
+		err := stmt.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(stmt)
+
+	_, err = stmt.Exec(c.ID, c.UserID)
+
 	return err
 }

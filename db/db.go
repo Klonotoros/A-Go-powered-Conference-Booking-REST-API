@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-
 	_ "modernc.org/sqlite"
 )
 
@@ -56,5 +55,22 @@ func createTables() error {
 	if err != nil {
 		panic("Could not create conferences table.")
 	}
+
+	createRegistrationsTable := `
+		CREATE TABLE IF NOT EXISTS registrations (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			conference_id INTEGER,
+			user_id INTEGER,
+			FOREIGN KEY(conference_id) REFERENCES conference(id),
+			FOREIGN KEY(user_id) REFERENCES users(id)
+		)
+    `
+
+	_, err = DB.Exec(createRegistrationsTable)
+
+	if err != nil {
+		panic("Could not create registrations table.")
+	}
+
 	return err
 }
